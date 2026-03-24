@@ -12,7 +12,7 @@
 
 #include "mini_rt.h"
 
-static unsigned long long			g_rng_state = 88172645463393265ULL;
+static __thread unsigned long long	g_rng_state = 88172645463393265ULL;
 
 /**
  * Seed the internal RNG state. Passing seed == 0 leaves the state unchanged.

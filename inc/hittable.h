@@ -255,6 +255,8 @@ t_aabb			get_object_bounds(const t_obj *obj);
 t_bvh_node		*build_bvh(t_obj_list *list);
 int				bvh_hit(t_bvh_node *node, t_ray *r, t_hit_range range,
 					t_hit_record *rec);
+int				bvh_hit_any(t_bvh_node *node, t_ray *r, t_hit_range range);
+int				world_hit_any_bvh(t_bvh_ctx *ctx);
 void			free_bvh(t_bvh_node *node);
 int				get_longest_axis(t_aabb *box);
 double			get_centroid_component(t_obj *obj, int axis);

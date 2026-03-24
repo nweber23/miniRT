@@ -36,6 +36,7 @@ t_vec3	vec3_normalize(const t_vec3 v);
 int		vec3_near_zero(const t_vec3 *v);
 
 t_vec3	apply_surface_bias(t_vec3 point, t_vec3 direction, t_vec3 normal);
+void	ray_compute_inv(t_ray *r);
 
 void	random_seed(unsigned int seed);
 double	random_double(void);

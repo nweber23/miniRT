@@ -26,6 +26,7 @@ static int	check_hit(t_data *data, t_ray_color_vars *vars)
 
 	range.tmin = 0.001;
 	range.tmax = INFINITY;
+	ray_compute_inv(&vars->current_ray);
 	if (data->settings.use_bvh)
 	{
 		bvh_ctx = (t_bvh_ctx){data->bvh_root, data->objects, &vars->current_ray,

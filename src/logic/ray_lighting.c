@@ -33,7 +33,7 @@ t_rgb	get_ambient_light(t_data *data, const t_hit_record *rec)
 
 /**
  * Tests if the shadow ray is occluded before reaching the light sample.
- * Uses BVH if enabled; otherwise checks the object list.
+ * Uses any-hit BVH traversal for early exit on first occluder.
  * @param data scene data (BVH, objects)
  * @param sc shadow calculation context (shadow_ray/distance set by caller)
  * @return 1 if in shadow (occluded), 0 if visible
@@ -45,14 +45,16 @@ int	is_in_shadow(t_data *data, t_shadow_calc *sc)
 
 	range.tmin = 0.001;
 	range.tmax = sc->distance - 0.001;
+	ray_compute_inv(&sc->shadow_ray);
 	if (data->settings.use_bvh && data->bvh_root)
 	{
 		bvh_ctx = (t_bvh_ctx){data->bvh_root, data->objects,
 			&sc->shadow_ray, range};
-		if (world_hit_bvh(&bvh_ctx, &sc->shadow_rec))
+		if (world_hit_any_bvh(&bvh_ctx))
 			return (1);
+		return (0);
 	}
-	if (!data->settings.use_bvh && data->objects
+	if (data->objects
 		&& world_hit(data->objects, &sc->shadow_ray, range, &sc->shadow_rec))
 		return (1);
 	return (0);

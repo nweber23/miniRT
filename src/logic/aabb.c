@@ -43,7 +43,7 @@ static int	test_slab(const t_aabb *box, const t_ray *r,
 	double	t0;
 	double	t1;
 
-	inv_d = 1.0 / ((double *)&r->direction)[test->axis];
+	inv_d = ((double *)&r->inv_dir)[test->axis];
 	t0 = (((double *)&box->min)[test->axis]
 			- ((double *)&r->origin)[test->axis]) * inv_d;
 	t1 = (((double *)&box->max)[test->axis]

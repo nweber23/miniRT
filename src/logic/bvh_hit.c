@@ -47,62 +47,77 @@ static int	test_leaf_objects(t_bvh_node *node, t_ray *r,
 }
 
 /**
- * Chooses the nearer of two hit records (left/right) and writes it to rec.
- * @param left_rec hit record from left child
- * @param right_rec hit record from right child
- * @param rec out chosen (closer) hit record
- * @return always 1 (indicates a hit was selected)
+ * Pushes non-null BVH children onto the traversal stack.
+ * Left is pushed last so it is popped (tested) first.
+ * @param stk explicit traversal stack
+ * @param sp stack pointer (in/out)
+ * @param nd current interior node
  */
-static int	process_both_hits(t_hit_record *left_rec, t_hit_record *right_rec,
-	t_hit_record *rec)
+static void	bvh_push_children(t_bvh_node **stk, int *sp, t_bvh_node *nd)
 {
-	if (left_rec->t < right_rec->t)
-		*rec = *left_rec;
-	else
-		*rec = *right_rec;
-	return (1);
+	if (nd->right)
+	{
+		stk[*sp] = nd->right;
+		*sp += 1;
+	}
+	if (nd->left)
+	{
+		stk[*sp] = nd->left;
+		*sp += 1;
+	}
 }
 
 /**
- * Processes the boolean hit results of child traversals and selects the
- * appropriate hit record to return to the caller.
- * @param pair pair structure containing hit flags and child records
- * @param rec out chosen hit record when one or both children hit
- * @return 1 if either child hit, 0 otherwise
- */
-static int	process_child_hits(t_bvh_hit_pair *pair, t_hit_record *rec)
-{
-	if (pair->hit_left && pair->hit_right)
-		return (process_both_hits(&pair->left_rec, &pair->right_rec, rec));
-	if (pair->hit_left)
-		*rec = pair->left_rec;
-	else if (pair->hit_right)
-		*rec = pair->right_rec;
-	return (pair->hit_left || pair->hit_right);
-}
-
-/**
- * Recursively traverses the BVH to find the closest intersection of ray r
- * with any object contained in the subtree rooted at node.
- * Performs an AABB test to cull branches. For leaf nodes it tests each object;
- * for interior nodes it recurses into children and selects the nearest hit.
- * @param node BVH node to traverse
+ * Tests a leaf node and updates the range if a closer hit is found.
+ * @param node BVH leaf node
  * @param r ray to cast
+ * @param range valid t range pointer (tmax updated on hit)
+ * @param rec out hit record
+ * @return 1 if hit found, 0 otherwise
+ */
+static int	bvh_update_leaf(t_bvh_node *node, t_ray *r,
+	t_hit_range *range, t_hit_record *rec)
+{
+	if (test_leaf_objects(node, r, *range, rec))
+	{
+		range->tmax = rec->t;
+		return (1);
+	}
+	return (0);
+}
+
+/**
+ * Iterative BVH traversal using an explicit stack.
+ * Avoids recursion overhead. Tightens tmax after each hit to prune
+ * far branches early via AABB rejection.
+ * @param node BVH root
+ * @param r ray to cast (must have inv_dir precomputed)
  * @param range valid t range (tmin/tmax)
- * @param rec out hit record for the closest hit (if any)
- * @return 1 if a hit was found in this subtree, 0 otherwise
+ * @param rec out hit record for the closest hit
+ * @return 1 if a hit was found, 0 otherwise
  */
 int	bvh_hit(t_bvh_node *node, t_ray *r, t_hit_range range, t_hit_record *rec)
 {
-	t_bvh_hit_pair	pair;
+	t_bvh_node	*stk[64];
+	int			sp;
+	int			hit;
 
 	if (!node)
 		return (0);
-	if (!aabb_hit(&node->box, r, range.tmin, range.tmax))
-		return (0);
-	if (node->obj_count > 0)
-		return (test_leaf_objects(node, r, range, rec));
-	pair.hit_left = bvh_hit(node->left, r, range, &pair.left_rec);
-	pair.hit_right = bvh_hit(node->right, r, range, &pair.right_rec);
-	return (process_child_hits(&pair, rec));
+	sp = 0;
+	hit = 0;
+	stk[sp++] = node;
+	while (sp > 0)
+	{
+		node = stk[--sp];
+		if (!aabb_hit(&node->box, r, range.tmin, range.tmax))
+			continue ;
+		if (node->obj_count > 0)
+		{
+			hit |= bvh_update_leaf(node, r, &range, rec);
+			continue ;
+		}
+		bvh_push_children(stk, &sp, node);
+	}
+	return (hit);
 }

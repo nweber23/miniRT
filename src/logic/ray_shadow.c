@@ -40,27 +40,23 @@ static void	add_phong_specular(t_phong_spec *ps)
 
 /**
  * Builds a jittered shadow ray towards an area-light sample.
- * Fills sample point, direction, distance; sets diffuse if unoccluded.
- * @param data global scene
+ * Fills sample point, direction, distance for later shadow testing.
  * @param light current light
  * @param rec hit record
  * @param sc shadow calculation scratch (out)
  */
-static void	calc_shadow_sample(t_data *data, t_light *light,
+static void	calc_shadow_sample(t_light *light,
 		const t_hit_record *rec, t_shadow_calc *sc)
 {
-	sc->offset = random_unit_vec3();
-	sc->offset = vec3_multiply(sc->offset, 0.5);
+	sc->offset.x = random_double() - 0.5;
+	sc->offset.y = random_double() - 0.5;
+	sc->offset.z = random_double() - 0.5;
 	sc->sample_point = vec3_add(light->cords, sc->offset);
 	sc->to_light = vec3_sub(sc->sample_point, rec->p);
 	sc->distance = sqrt(vec3_dot(sc->to_light, sc->to_light));
 	sc->light_dir = vec3_divide(sc->to_light, sc->distance);
 	sc->shadow_ray.origin = rec->p;
 	sc->shadow_ray.direction = sc->light_dir;
-	if (!is_in_shadow(data, sc))
-	{
-		sc->diffuse = fmax(0.0, vec3_dot(rec->normal, sc->light_dir));
-	}
 }
 
 /**
@@ -83,7 +79,7 @@ static void	process_light_samples(t_data *data, t_light *light,
 	sc.view_dir = vec3_normalize(vec3_sub(data->camera.center, rec->p));
 	while (samples < SHADOW_SAMPLES)
 	{
-		calc_shadow_sample(data, light, rec, &sc);
+		calc_shadow_sample(light, rec, &sc);
 		if (!is_in_shadow(data, &sc))
 		{
 			sc.diffuse = fmax(0.0, vec3_dot(rec->normal, sc.light_dir));

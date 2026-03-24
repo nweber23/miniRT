@@ -25,6 +25,18 @@
  * @param normal    surface normal at the point (should be unit length)
  * @return new point moved by a small bias along the normal
  */
+/**
+ * Precomputes the reciprocal of each ray direction component for fast
+ * AABB slab tests. Must be called before any BVH traversal with this ray.
+ * @param r ray whose inv_dir field will be filled
+ */
+__attribute__((always_inline)) inline void	ray_compute_inv(t_ray *r)
+{
+	r->inv_dir.x = 1.0 / r->direction.x;
+	r->inv_dir.y = 1.0 / r->direction.y;
+	r->inv_dir.z = 1.0 / r->direction.z;
+}
+
 __attribute__((always_inline)) inline t_vec3	apply_surface_bias(t_vec3 point,
 	t_vec3 direction, t_vec3 normal)
 {

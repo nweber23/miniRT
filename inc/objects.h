@@ -39,6 +39,7 @@ typedef struct s_ray
 {
 	t_vec3						origin;
 	t_vec3						direction;
+	t_vec3						inv_dir;
 }								t_ray;
 
 typedef struct s_rgb

@@ -1,25 +1,18 @@
 MAKEFLAGS += -s
 
 NAME	:= miniRT
-CFLAGS	:= -Wall -Wextra -Werror -Ofast -flto -mtune=native \
-  -funroll-loops -fprefetch-loop-arrays -fpeel-loops -funswitch-loops -ftracer \
-  -ftree-vectorize -ftree-slp-vectorize -ftree-loop-distribution -fivopts \
-  -fgraphite-identity -floop-nest-optimize -floop-interchange -floop-strip-mine -floop-block -floop-unroll-and-jam \
-  -fstrict-aliasing -fweb -frename-registers -fira-loop-pressure -fira-region=all -fira-hoist-pressure \
-  -fsched-pressure -fsched-spec -fsched-spec-load \
-  -falign-functions=32 -falign-loops=32 -falign-jumps=32 -falign-labels=32 \
-  -freorder-blocks -freorder-blocks-and-partition -freorder-functions \
+CFLAGS	:= -Wall -Wextra -Werror -Ofast -flto -mtune=native -pthread \
+  -funroll-loops -fprefetch-loop-arrays \
+  -ftree-vectorize -ftree-slp-vectorize \
+  -fgraphite-identity -floop-nest-optimize \
+  -fstrict-aliasing -frename-registers \
+  -falign-functions=32 -falign-loops=32 \
+  -freorder-blocks -freorder-blocks-and-partition \
   -fdata-sections -ffunction-sections -Wl,--gc-sections \
-  -fno-plt -fno-semantic-interposition \
   -fomit-frame-pointer -fmerge-all-constants \
-  -ffast-math -fno-math-errno -fno-trapping-math -freciprocal-math \
-  -fassociative-math -ffinite-math-only -fno-signed-zeros \
-  -fipa-pta -fipa-cp-clone -fipa-sra -fipa-pure-const -fipa-reference \
-  -fdevirtualize -fdevirtualize-speculatively \
-  -fno-stack-protector -fno-exceptions -fwhole-program -pthread \
-  -fmodulo-sched -fmodulo-sched-allow-regmoves \
-  -fsplit-loops -fpredictive-commoning -ftree-loop-im -ftree-loop-if-convert \
-  -fgcse-sm -fgcse-las -fvariable-expansion-in-unroller -funroll-all-loops \
+  -ffast-math -fno-math-errno -fno-trapping-math \
+  -fipa-cp-clone -fdevirtualize-speculatively \
+  -fno-stack-protector -fwhole-program \
   -Wno-unused-result
 
 LDFLAGS := -Wl,-O2 -Wl,--sort-common -Wl,--as-needed -no-pie
@@ -87,6 +80,7 @@ SRC = src/main.c \
 		src/logic/bounds_dispatch.c \
 		src/logic/bvh_build.c \
 		src/logic/bvh_hit.c \
+		src/logic/bvh_shadow.c \
 		src/logic/bvh_cleanup.c \
 		src/logic/bvh_utils.c \
 		src/logic/ray.c \

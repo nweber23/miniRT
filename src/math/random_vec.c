@@ -63,18 +63,18 @@ t_vec3	random_unit_vec3(void)
 }
 
 /**
- * Sample a random direction on the hemisphere centered around `normal`.
- * Produces a vector uniformly sampled on the unit sphere and flips it to
- * the hemisphere that has positive dot with the provided normal.
+ * Sample a cosine-weighted random direction on the hemisphere around normal.
+ * Adding normal to a random unit sphere vector produces a cosine distribution
+ * which converges faster for diffuse surfaces than uniform sampling.
  * @param normal pointer to hemisphere center normal
- * @return random unit vector on the same hemisphere as normal
+ * @return random unit vector cosine-weighted toward normal
  */
 t_vec3	random_on_hemisphere(t_vec3 *normal)
 {
-	t_vec3	on_unit_sphere;
+	t_vec3	dir;
 
-	on_unit_sphere = random_unit_vec3();
-	if (vec3_dot(on_unit_sphere, *normal) > 0.0)
-		return (on_unit_sphere);
-	return (vec3_overload(on_unit_sphere));
+	dir = vec3_add(*normal, random_unit_vec3());
+	if (vec3_dot(dir, dir) < 1e-160)
+		return (*normal);
+	return (vec3_normalize(dir));
 }
